@@ -1,0 +1,32 @@
+.banner {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--space) * 2);
+  padding: calc(var(--space) * 1.5) calc(var(--space) * 4);
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.banner[data-tone='danger'] {
+  background: color-mix(in srgb, var(--danger) 12%, var(--bg));
+  border-bottom-color: color-mix(in srgb, var(--danger) 30%, transparent);
+}
+
+.banner[data-tone='info'] {
+  background: var(--accent-soft);
+  border-bottom-color: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.text span {
+  color: var(--text-muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}

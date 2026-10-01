@@ -6,8 +6,9 @@ The official launcher is heavy (around 2 GB of RAM), slow to start, and full of
 things most people never asked for. Wisp does a small set of things and tries to
 do them well.
 
-> **Status: in development.** Sprint 0 (project skeleton) is done. The app
-> builds and runs, but it cannot talk to Epic yet — that starts in sprint 2.
+> **Status: in development.** Sprints 0 and 1 are done: the app builds, runs,
+> and sets up its own Legendary installation on first launch. Signing in to
+> Epic and listing your games starts in sprint 2.
 
 ## What Wisp does
 
@@ -29,11 +30,18 @@ Epic account, and it signs in through Epic's own login page.
 ## How it works
 
 Wisp is a user interface on top of [Legendary](https://github.com/legendary-gl/legendary),
-the open source Epic Games client. Wisp does not reimplement Epic's API: it
-downloads the official Legendary binary into its own data folder and drives
-it. There is nothing to install yourself, and Python is not required. Legendary's
-configuration lives inside Wisp's own data folder, so an existing Legendary or
-Heroic setup is never touched.
+the open source Epic Games client. Wisp does not reimplement Epic's API.
+
+On first launch it downloads the official Legendary binary (about 17 MB) from
+Legendary's GitHub releases and checks it against the SHA-256 that GitHub
+publishes for that file. There is nothing to install yourself: no Python, no
+administrator rights, nothing added to your PATH. Legendary's configuration is
+pinned inside Wisp's own data folder, so an existing Legendary or Heroic setup
+is never read or written.
+
+Wisp checks for a newer Legendary at startup and offers it. It never updates
+anything on its own. If the binary ever stops working, "Repair runtime" in
+settings downloads it again.
 
 - **Frontend:** React + TypeScript + Vite
 - **Backend:** Rust, via [Tauri 2](https://tauri.app)
@@ -100,8 +108,8 @@ support (chapter 2) means adding an implementation, not editing call sites.
 
 **Portable**
 
-Put an empty file named `portable.flag` next to `wisp.exe` and everything —
-settings, Legendary, cache, saved data — goes into `.\data\` next to the
+Put an empty file named `portable.flag` next to `wisp.exe` and everything
+(settings, Legendary, cache, saved data) goes into `.\data\` next to the
 executable instead. Nothing is written outside that folder, so Wisp runs from a
 USB stick.
 
@@ -109,7 +117,7 @@ USB stick.
 
 English and Spanish ship today; Portuguese, French and German arrive in
 sprint 5. Wisp follows your system language on first run and falls back to
-English. No UI text is hardcoded — everything goes through the translation
+English. No UI text is hardcoded: everything goes through the translation
 files in `src/i18n/locales/`.
 
 ## Licence

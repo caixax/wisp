@@ -1,0 +1,88 @@
+.screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: calc(var(--space) * 4);
+  overflow-y: auto;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--space) * 2);
+  width: 100%;
+  max-width: 520px;
+  padding: calc(var(--space) * 5) calc(var(--space) * 4);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.mark {
+  width: 56px;
+  height: 56px;
+}
+
+.title {
+  font-size: 19px;
+}
+
+.body {
+  max-width: 44ch;
+  color: var(--text-muted);
+}
+
+.note {
+  max-width: 44ch;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.action {
+  margin-top: var(--space);
+  padding-inline: calc(var(--space) * 3);
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space);
+  width: 100%;
+  margin-top: var(--space);
+}
+
+.progressRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.bytes {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.error {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: calc(var(--space) * 1.5);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.error strong {
+  color: var(--danger);
+}

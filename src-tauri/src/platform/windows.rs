@@ -3,7 +3,7 @@
 //! Installed mode follows the usual Windows split: roaming configuration in
 //! `%APPDATA%`, machine-local runtime and caches in `%LOCALAPPDATA%`.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::error::{Error, Result};
 use crate::platform::{portable_layout, portable_root, Platform, WispPaths};
@@ -63,5 +63,18 @@ impl Platform for WindowsPlatform {
 
     fn legendary_executable_name(&self) -> &'static str {
         "legendary.exe"
+    }
+
+    fn legendary_asset_name(&self) -> Result<&'static str> {
+        match std::env::consts::ARCH {
+            "x86_64" => Ok("legendary_windows_x64.exe"),
+            "aarch64" => Ok("legendary_windows_arm64.exe"),
+            arch => Err(Error::UnsupportedArch { arch }),
+        }
+    }
+
+    fn make_executable(&self, _path: &Path) -> Result<()> {
+        // Windows decides by extension, not by a permission bit.
+        Ok(())
     }
 }

@@ -14,9 +14,9 @@ cheap to fix.
 - **Memory** covers `wisp.exe` and every WebView2 process descended from it,
   sampled 10 seconds after the window appears with the app idle on its default
   screen. Two numbers are reported because they mean different things:
-  - **Private working set** — RAM that belongs only to Wisp. This is what Task
+  - **Private working set**: RAM that belongs only to Wisp. This is what Task
     Manager shows for an app, and it is the number the 200 MB budget refers to.
-  - **Total working set** — the same processes including shared Edge/WebView2
+  - **Total working set**: the same processes including shared Edge/WebView2
     pages. Those pages are counted once per process and are shared with any
     other WebView2 app and with Edge itself, so this figure overstates what
     Wisp actually costs the machine. It is tracked anyway as an upper bound.
@@ -39,9 +39,10 @@ powershell -ExecutionPolicy Bypass -File docs/measure-performance.ps1
 
 ## Results
 
-| Sprint       | Date       | Startup to window | Idle private WS | Idle total WS | Processes | `wisp.exe` |
-| ------------ | ---------- | ----------------- | --------------- | ------------- | --------- | ---------- |
-| 0 — skeleton | 2026-10-01 | 77 ms             | 96 MB           | 317 MB        | 7         | 3.95 MB    |
+| Sprint               | Date       | Startup to window | Idle private WS | Idle total WS | Processes | `wisp.exe` |
+| -------------------- | ---------- | ----------------- | --------------- | ------------- | --------- | ---------- |
+| 0, skeleton          | 2026-10-01 | 77 ms             | 96 MB           | 317 MB        | 7         | 3.95 MB    |
+| 1, Legendary runtime | 2026-10-01 | 102 ms            | 96 MB           | 321 MB        | 7         | 5.21 MB    |
 
 Budget: **< 2 s** startup, **< 200 MB** idle private working set.
 
@@ -62,3 +63,18 @@ idle on its default screen.
 - Private working set has 104 MB of headroom against the budget. Cover art
   caching (sprint 2) and the download queue (sprint 3) are the two features
   most likely to eat into it.
+
+**Sprint 1.** Legendary is downloaded and managed, so the app now does real
+work at startup. Memory is unchanged; the binary grew by 1.3 MB.
+
+- The 1.3 MB comes from the HTTP stack (ureq with rustls and ring), SHA-256
+  and tokio's process support. No system libraries were added: the binary
+  still has no dependency on OpenSSL, cmake or Python.
+- Idle memory did not move. Legendary is a child process that only exists
+  while a command runs, so it costs nothing between calls.
+- Startup went from 77 ms to 102 ms. Both numbers are noise against the 2 s
+  budget; the startup checks (`legendary --version` and the GitHub release
+  check) run after the window is up and never block it.
+- Nothing is left running after the window closes: child processes are
+  spawned with `kill_on_drop`, verified by checking the process list after
+  exit.

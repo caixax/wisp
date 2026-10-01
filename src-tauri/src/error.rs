@@ -22,6 +22,26 @@ pub enum Error {
     #[error("{0}")]
     Config(String),
 
+    #[error("network request failed: {0}")]
+    Http(String),
+
+    /// A download did not match the hash the server published for it.
+    #[error(
+        "the download did not match its published checksum (expected {expected}, got {actual})"
+    )]
+    Checksum { expected: String, actual: String },
+
+    /// Something went wrong provisioning or inspecting the Legendary runtime.
+    #[error("{0}")]
+    Runtime(String),
+
+    /// Legendary ran but reported a failure.
+    #[error("{0}")]
+    Legendary(String),
+
+    #[error("{arch} is not a supported processor architecture")]
+    UnsupportedArch { arch: &'static str },
+
     #[error("this feature is not implemented on {platform} yet")]
     UnsupportedPlatform { platform: &'static str },
 }
@@ -34,6 +54,11 @@ impl Error {
             Error::Serde(_) => "serde",
             Error::Paths(_) => "paths",
             Error::Config(_) => "config",
+            Error::Http(_) => "http",
+            Error::Checksum { .. } => "checksum",
+            Error::Runtime(_) => "runtime",
+            Error::Legendary(_) => "legendary",
+            Error::UnsupportedArch { .. } => "unsupported_arch",
             Error::UnsupportedPlatform { .. } => "unsupported_platform",
         }
     }

@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 
 import { Page } from '@/components/Page';
+import { RuntimeSection } from '@/components/RuntimeSection';
+import type { useRuntime } from '@/hooks/useRuntime';
 import { languageLabel, resolveLanguage, SUPPORTED_LANGUAGES } from '@/i18n';
 import type { AppInfo, Settings, Theme } from '@/lib/types';
 
@@ -11,6 +13,7 @@ const THEMES: Theme[] = ['dark', 'light', 'system'];
 interface SettingsPageProps {
   info: AppInfo;
   settings: Settings;
+  runtime: ReturnType<typeof useRuntime>;
   onLanguageChange: (language: string | null) => void;
   onThemeChange: (theme: Theme) => void;
 }
@@ -18,6 +21,7 @@ interface SettingsPageProps {
 export function SettingsPage({
   info,
   settings,
+  runtime,
   onLanguageChange,
   onThemeChange,
 }: SettingsPageProps) {
@@ -69,6 +73,16 @@ export function SettingsPage({
           </div>
         </fieldset>
       </section>
+
+      <RuntimeSection
+        status={runtime.status}
+        probe={runtime.probe}
+        update={runtime.update}
+        updateError={runtime.updateError}
+        checking={runtime.checking}
+        onCheckUpdate={() => void runtime.checkUpdate()}
+        onInstalled={runtime.applyInstalled}
+      />
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>{t('settings.about')}</h2>

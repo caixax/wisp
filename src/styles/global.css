@@ -17,6 +17,7 @@
   --text-muted: #98a1b3;
   --text-faint: #6b7384;
   --accent: #56d8ff;
+  --accent-strong: #7c5eff;
   --accent-contrast: #04222e;
   --accent-soft: rgb(86 216 255 / 12%);
   --danger: #ff6b6b;
@@ -47,6 +48,7 @@
   --text-muted: #59616f;
   --text-faint: #858d9c;
   --accent: #0b7fb0;
+  --accent-strong: #5b3fe0;
   --accent-contrast: #ffffff;
   --accent-soft: rgb(11 127 176 / 10%);
   --danger: #c2383b;

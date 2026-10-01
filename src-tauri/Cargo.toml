@@ -26,6 +26,11 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 dirs = "7"
 sys-locale = "0.3"
+# Blocking HTTP with rustls+ring and bundled roots: no OpenSSL, no cmake/nasm,
+# and it behaves the same on Windows and Linux. Calls run on a blocking task.
+ureq = { version = "3", features = ["json"] }
+sha2 = "0.11"
+tokio = { version = "1", features = ["process", "sync"] }
 
 [dev-dependencies]
 tempfile = "3"

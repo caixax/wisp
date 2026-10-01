@@ -1,8 +1,8 @@
 //! Platform abstraction layer.
 //!
-//! Everything that differs between operating systems — data directories,
-//! Python discovery, how a game process is spawned and detected — lives
-//! behind this module. The rest of the app only talks to the [`Platform`]
+//! Everything that differs between operating systems lives here: data
+//! directories, which Legendary build to download, how a game process is
+//! spawned and detected. The rest of the app only talks to the [`Platform`]
 //! trait, so adding Linux support (chapter 2) means adding an implementation
 //! here, not touching call sites.
 
@@ -37,7 +37,7 @@ pub struct WispPaths {
     pub root: PathBuf,
     /// User settings (`settings.json`). Roams with the user profile on Windows.
     pub config: PathBuf,
-    /// Private Python runtime and Legendary installation.
+    /// The Legendary binary Wisp downloads and manages.
     pub runtime: PathBuf,
     /// Exported as `LEGENDARY_CONFIG_PATH` so Wisp never touches a
     /// Legendary or Heroic installation the user already has.
@@ -85,6 +85,28 @@ pub trait Platform: Send + Sync {
 
     /// File name of the Legendary executable managed by Wisp.
     fn legendary_executable_name(&self) -> &'static str;
+
+    /// Name of the GitHub release asset to download for this OS and
+    /// architecture, e.g. `legendary_windows_x64.exe`.
+    fn legendary_asset_name(&self) -> Result<&'static str>;
+
+    /// Makes a freshly downloaded binary runnable. A no-op on Windows, where
+    /// the extension decides; sets the executable bit elsewhere.
+    fn make_executable(&self, path: &Path) -> Result<()>;
+}
+
+/// Keeps a console window from flashing up when Wisp spawns a child process.
+/// Windows-only; every other platform already runs children silently.
+pub fn hide_console(command: &mut tokio::process::Command) {
+    #[cfg(target_os = "windows")]
+    {
+        // CREATE_NO_WINDOW. tokio's Command exposes this directly on Windows.
+        command.creation_flags(0x0800_0000);
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        let _ = command;
+    }
 }
 
 /// Returns the platform implementation for the current target.

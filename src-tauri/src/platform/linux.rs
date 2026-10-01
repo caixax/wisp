@@ -4,7 +4,7 @@
 //! rest of the codebase can already be written platform-agnostically.
 //! Wine/Proton handling and process detection arrive in chapter 2, sprint 7.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::error::{Error, Result};
 use crate::platform::{portable_layout, portable_root, Platform, WispPaths};
@@ -67,6 +67,23 @@ impl Platform for LinuxPlatform {
 
     fn legendary_executable_name(&self) -> &'static str {
         "legendary"
+    }
+
+    fn legendary_asset_name(&self) -> Result<&'static str> {
+        match std::env::consts::ARCH {
+            "x86_64" => Ok("legendary_linux_x64"),
+            "aarch64" => Ok("legendary_linux_arm64"),
+            arch => Err(Error::UnsupportedArch { arch }),
+        }
+    }
+
+    fn make_executable(&self, path: &Path) -> Result<()> {
+        use std::os::unix::fs::PermissionsExt;
+
+        let mut perms = std::fs::metadata(path)?.permissions();
+        perms.set_mode(0o755);
+        std::fs::set_permissions(path, perms)?;
+        Ok(())
     }
 }
 

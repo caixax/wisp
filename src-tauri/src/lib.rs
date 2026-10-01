@@ -1,12 +1,12 @@
-//! Wisp — a fast, lightweight launcher for an Epic Games library.
+//! Wisp: a fast, lightweight launcher for an Epic Games library.
 //!
 //! The backend is organised as a handful of focused modules:
 //!
-//! * [`platform`] — per-OS paths and behaviour, selected at compile time.
-//! * [`runtime`] — the private Python + Legendary installation Wisp manages.
-//! * [`legendary`] — the only place that talks to the Legendary CLI.
-//! * [`library`], [`downloads`] — game metadata and install/update jobs.
-//! * [`settings`] — the user's `settings.json`.
+//! * [`platform`]: per-OS paths and behaviour, selected at compile time.
+//! * [`runtime`]: the Legendary binary Wisp downloads and keeps up to date.
+//! * [`legendary`]: the only place that talks to the Legendary CLI.
+//! * [`library`], [`downloads`]: game metadata and install/update jobs.
+//! * [`settings`]: the user's `settings.json`.
 
 pub mod commands;
 pub mod downloads;
@@ -17,25 +17,29 @@ pub mod platform;
 pub mod runtime;
 pub mod settings;
 
+use std::sync::Arc;
+
 use platform::Platform;
+use runtime::RuntimeManager;
 use settings::SettingsStore;
 
 /// Application state shared by every Tauri command.
 pub struct AppState {
-    pub platform: Box<dyn Platform>,
+    pub platform: Arc<dyn Platform>,
     pub settings: SettingsStore,
+    pub runtime: RuntimeManager,
 }
 
 /// Builds and runs the Tauri application.
 ///
 /// Startup is deliberately cheap: resolve directories, read one small JSON
-/// file, show the window. Anything slower (runtime provisioning, library
-/// refresh) happens on demand with progress reported to the UI.
+/// file, show the window. Anything slower (provisioning Legendary, refreshing
+/// the library) happens on demand with progress reported to the UI.
 pub fn run() {
     init_tracing();
 
-    let platform = match platform::current() {
-        Ok(platform) => platform,
+    let platform: Arc<dyn Platform> = match platform::current() {
+        Ok(platform) => Arc::from(platform),
         Err(e) => {
             // Without data directories there is nothing meaningful to show.
             eprintln!("Wisp cannot start: {e}");
@@ -59,15 +63,26 @@ pub fn run() {
         env!("CARGO_PKG_VERSION")
     );
 
+    let runtime = RuntimeManager::new(Arc::clone(&platform));
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .manage(AppState { platform, settings })
+        .manage(AppState {
+            platform,
+            settings,
+            runtime,
+        })
         .invoke_handler(tauri::generate_handler![
             commands::app_info,
             commands::get_settings,
             commands::set_language,
             commands::set_theme,
             commands::set_onboarding_completed,
+            commands::runtime_status,
+            commands::runtime_probe,
+            commands::runtime_check_update,
+            commands::runtime_install,
+            commands::open_path,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Wisp");
