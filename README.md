@@ -30,7 +30,8 @@ Epic account, and it signs in through Epic's own login page.
 
 Wisp is a user interface on top of [Legendary](https://github.com/legendary-gl/legendary),
 the open source Epic Games client. Wisp does not reimplement Epic's API: it
-manages a private Legendary installation of its own and drives it. Legendary's
+downloads the official Legendary binary into its own data folder and drives
+it. There is nothing to install yourself, and Python is not required. Legendary's
 configuration lives inside Wisp's own data folder, so an existing Legendary or
 Heroic setup is never touched.
 
@@ -76,7 +77,7 @@ src/                    React frontend
   styles/               Design tokens and base styles
 src-tauri/src/          Rust backend
   platform/             Per-OS paths and behaviour (windows.rs, linux.rs)
-  runtime/              The private Python + Legendary installation
+  runtime/              The private Legendary installation Wisp downloads
   legendary/            The only module that talks to the Legendary CLI
   library/              Owned games, DLC, metadata, cover art
   downloads/            Download queue and install jobs
@@ -90,17 +91,17 @@ support (chapter 2) means adding an implementation, not editing call sites.
 
 **Installed (Windows)**
 
-| What                       | Where                                                          |
-| -------------------------- | -------------------------------------------------------------- |
-| Settings                   | `%APPDATA%\Wisp`                                               |
-| Python runtime + Legendary | `%LOCALAPPDATA%\Wisp\runtime`, `%LOCALAPPDATA%\Wisp\legendary` |
-| Cover art cache            | `%LOCALAPPDATA%\Wisp\cache`                                    |
-| Logs                       | `%LOCALAPPDATA%\Wisp\logs`                                     |
+| What                        | Where                                                          |
+| --------------------------- | -------------------------------------------------------------- |
+| Settings                    | `%APPDATA%\Wisp`                                               |
+| Legendary binary + its data | `%LOCALAPPDATA%\Wisp\runtime`, `%LOCALAPPDATA%\Wisp\legendary` |
+| Cover art cache             | `%LOCALAPPDATA%\Wisp\cache`                                    |
+| Logs                        | `%LOCALAPPDATA%\Wisp\logs`                                     |
 
 **Portable**
 
 Put an empty file named `portable.flag` next to `wisp.exe` and everything —
-settings, runtime, cache, Legendary data — goes into `.\data\` next to the
+settings, Legendary, cache, saved data — goes into `.\data\` next to the
 executable instead. Nothing is written outside that folder, so Wisp runs from a
 USB stick.
 
