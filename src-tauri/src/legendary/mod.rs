@@ -8,11 +8,47 @@
 //! `LEGENDARY_CONFIG_PATH`, so a Legendary or Heroic installation the user
 //! already has is never read or written.
 
+pub mod json;
+
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 
+use serde::Deserialize;
+use serde_json::Value;
+
 use crate::error::{Error, Result};
 use crate::platform::hide_console;
+
+/// Platform Wisp asks Legendary about. Epic titles are Windows builds; on
+/// Linux they run through a compatibility layer (chapter 2), so the asset
+/// platform stays "Windows" there too.
+pub const GAME_PLATFORM: &str = "Windows";
+
+/// What `legendary status --json` reports. It works logged out, which makes
+/// it the cheapest way to ask "is there an account attached?".
+#[derive(Debug, Clone, Deserialize)]
+pub struct Status {
+    pub account: String,
+    #[serde(default)]
+    pub games_available: u32,
+    #[serde(default)]
+    pub games_installed: u32,
+    #[serde(default)]
+    pub egl_sync_enabled: bool,
+}
+
+impl Status {
+    /// Legendary prints this placeholder instead of an account name.
+    const LOGGED_OUT: &'static str = "<not logged in>";
+
+    pub fn logged_in(&self) -> bool {
+        self.account != Self::LOGGED_OUT && !self.account.trim().is_empty()
+    }
+
+    pub fn account_name(&self) -> Option<&str> {
+        self.logged_in().then_some(self.account.as_str())
+    }
+}
 
 /// Result of running Legendary once.
 #[derive(Debug, Clone)]
@@ -111,6 +147,64 @@ impl Legendary {
         })
     }
 
+    /// Runs a command that prints JSON and parses the result.
+    async fn run_json<I, S>(&self, args: I) -> Result<Value>
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<OsStr>,
+    {
+        let stdout = self.run(args).await?.into_stdout()?;
+        serde_json::from_str(&stdout)
+            .map_err(|e| Error::Legendary(format!("could not read Legendary's JSON output: {e}")))
+    }
+
+    /// Account and library counts. Works whether or not anyone is signed in.
+    pub async fn status(&self) -> Result<Status> {
+        let value = self.run_json(["status", "--json"]).await?;
+        serde_json::from_value(value)
+            .map_err(|e| Error::Legendary(format!("unexpected status output: {e}")))
+    }
+
+    /// Everything the account owns, with each entry's DLC nested under `dlcs`.
+    pub async fn list(&self, force_refresh: bool) -> Result<Vec<Value>> {
+        let mut args = vec!["list", "--json", "--platform", GAME_PLATFORM];
+        if force_refresh {
+            args.push("--force-refresh");
+        }
+        as_array(self.run_json(args).await?, "list")
+    }
+
+    /// Games (and DLC) installed on this machine.
+    pub async fn list_installed(&self) -> Result<Vec<Value>> {
+        as_array(
+            self.run_json(["list-installed", "--json"]).await?,
+            "list-installed",
+        )
+    }
+
+    /// Detailed information for a single title.
+    pub async fn info(&self, app_name: &str) -> Result<Value> {
+        self.run_json(["info", app_name, "--json"]).await
+    }
+
+    /// Completes a login with the authorization code from Epic's redirect.
+    pub async fn auth_with_code(&self, code: &str) -> Result<()> {
+        let run = self.run(["auth", "--code", code]).await?;
+        if run.succeeded() {
+            return Ok(());
+        }
+        run.into_stdout().map(|_| ())
+    }
+
+    /// Removes the stored credentials.
+    pub async fn logout(&self) -> Result<()> {
+        let run = self.run(["auth", "--delete"]).await?;
+        if run.succeeded() {
+            return Ok(());
+        }
+        run.into_stdout().map(|_| ())
+    }
+
     /// The version Legendary reports for itself.
     pub async fn version(&self) -> Result<String> {
         let run = self.run(["--version"]).await?;
@@ -127,6 +221,27 @@ impl Legendary {
                     run.stdout.trim()
                 ))
             })
+    }
+}
+
+fn as_array(value: Value, command: &str) -> Result<Vec<Value>> {
+    match value {
+        Value::Array(items) => Ok(items),
+        other => Err(Error::Legendary(format!(
+            "expected a list from `legendary {command}`, got {}",
+            kind_of(&other)
+        ))),
+    }
+}
+
+fn kind_of(value: &Value) -> &'static str {
+    match value {
+        Value::Null => "null",
+        Value::Bool(_) => "a boolean",
+        Value::Number(_) => "a number",
+        Value::String(_) => "a string",
+        Value::Array(_) => "a list",
+        Value::Object(_) => "an object",
     }
 }
 
@@ -175,6 +290,28 @@ mod tests {
         let err = failed.into_stdout().unwrap_err();
         assert_eq!(err.kind(), "legendary");
         assert!(err.to_string().contains("not logged in"));
+    }
+
+    #[test]
+    fn status_recognises_the_logged_out_placeholder() {
+        let logged_out: Status =
+            serde_json::from_str(r#"{"account":"<not logged in>","games_available":0}"#).unwrap();
+        assert!(!logged_out.logged_in());
+        assert_eq!(logged_out.account_name(), None);
+
+        let logged_in: Status =
+            serde_json::from_str(r#"{"account":"someone@example.com","games_available":42}"#)
+                .unwrap();
+        assert!(logged_in.logged_in());
+        assert_eq!(logged_in.account_name(), Some("someone@example.com"));
+        assert_eq!(logged_in.games_available, 42);
+    }
+
+    #[test]
+    fn a_non_list_response_is_reported_clearly() {
+        let err = as_array(serde_json::json!({"error": "nope"}), "list").unwrap_err();
+        assert!(err.to_string().contains("expected a list"));
+        assert!(err.to_string().contains("an object"));
     }
 
     #[test]

@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { BootError, BootScreen } from '@/components/BootScreen';
 import { RuntimeBanner } from '@/components/RuntimeBanner';
 import { Sidebar } from '@/components/Sidebar';
+import { useAuth } from '@/hooks/useAuth';
+import { useLibrary } from '@/hooks/useLibrary';
 import { useRuntime } from '@/hooks/useRuntime';
 import { useRuntimeInstall } from '@/hooks/useRuntimeInstall';
 import { useTheme } from '@/hooks/useTheme';
@@ -12,6 +14,7 @@ import * as ipc from '@/lib/ipc';
 import { DEFAULT_ROUTE, type Route } from '@/lib/routes';
 import { isWispError, type AppInfo, type Settings, type Theme } from '@/lib/types';
 import { DownloadsPage } from '@/pages/DownloadsPage';
+import { GamePage } from '@/pages/GamePage';
 import { LibraryPage } from '@/pages/LibraryPage';
 import { RuntimeSetupPage } from '@/pages/RuntimeSetupPage';
 import { SettingsPage } from '@/pages/SettingsPage';
@@ -63,6 +66,9 @@ function Shell({ info }: { info: AppInfo }) {
   const { runProbe, checkUpdate, applyInstalled, status: runtimeStatus } = runtime;
   const { state: installState, run: install } = useRuntimeInstall(applyInstalled);
 
+  const auth = useAuth(runtimeStatus.installed);
+  const library = useLibrary(auth.phase === 'signedIn');
+
   useTheme(settings.theme);
 
   useEffect(() => {
@@ -86,6 +92,9 @@ function Shell({ info }: { info: AppInfo }) {
     void ipc.setTheme(theme).then(setSettings);
   }, []);
 
+  const openGame = useCallback((appName: string) => setRoute({ page: 'game', appName }), []);
+  const backToLibrary = useCallback(() => setRoute({ page: 'library' }), []);
+
   if (!runtimeStatus.installed) {
     return <RuntimeSetupPage onInstalled={applyInstalled} />;
   }
@@ -102,13 +111,23 @@ function Shell({ info }: { info: AppInfo }) {
           onUpdate={() => void install(false)}
           onDismissUpdate={() => setUpdateDismissed(true)}
         />
-        {route.page === 'library' || route.page === 'game' ? <LibraryPage /> : null}
+        {route.page === 'library' ? (
+          <LibraryPage auth={auth} library={library} onOpenGame={openGame} />
+        ) : null}
+        {route.page === 'game' ? (
+          <GamePage
+            appName={route.appName}
+            coverVersion={library.coverVersion}
+            onBack={backToLibrary}
+          />
+        ) : null}
         {route.page === 'downloads' ? <DownloadsPage /> : null}
         {route.page === 'settings' ? (
           <SettingsPage
             info={info}
             settings={settings}
             runtime={runtime}
+            auth={auth}
             onLanguageChange={handleLanguageChange}
             onThemeChange={handleThemeChange}
           />

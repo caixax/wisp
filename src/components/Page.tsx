@@ -4,8 +4,8 @@ import styles from './Page.module.css';
 
 interface PageProps {
   title: string;
-  subtitle?: string;
-  actions?: ReactNode;
+  subtitle?: string | undefined;
+  actions?: ReactNode | undefined;
   children: ReactNode;
 }
 

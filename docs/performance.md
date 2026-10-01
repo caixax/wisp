@@ -78,3 +78,16 @@ work at startup. Memory is unchanged; the binary grew by 1.3 MB.
 - Nothing is left running after the window closes: child processes are
   spawned with `kill_on_drop`, verified by checking the process list after
   exit.
+
+**Sprint 2.** Signing in and the library grid. Measured signed out, which is
+the only state available without an Epic account on this machine.
+
+- Memory is up 4 MB, from the library cache and the account check. Both the
+  catalogue and the cover art live on disk and are read once, so the figure
+  should move with the size of a library, not with how long Wisp is left
+  open. Worth re-measuring against a large account.
+- Startup is unchanged. The account check and the library load both happen
+  after the window is up: the grid renders from the disk cache, and Legendary
+  is only asked when the cache is empty or the user presses refresh.
+- The Epic login window is a second webview and only exists while signing in.
+  It is not counted here.

@@ -9,7 +9,9 @@ use std::path::PathBuf;
 use serde::Serialize;
 use tauri::{AppHandle, State};
 
+use crate::auth::{self, AuthState};
 use crate::error::{Error, Result};
+use crate::library::{GameDetails, LibrarySnapshot};
 use crate::platform::WispPaths;
 use crate::runtime::{RuntimeProbe, RuntimeStatus, UpdateCheck};
 use crate::settings::{Settings, Theme};
@@ -95,6 +97,72 @@ pub async fn runtime_install(
     force: bool,
 ) -> Result<RuntimeStatus> {
     state.runtime.install(&app, force).await
+}
+
+/// Who is signed in, according to Legendary. Costs one process spawn.
+#[tauri::command]
+pub async fn auth_status(state: State<'_, AppState>) -> Result<AuthState> {
+    auth::status(&state.runtime.legendary()).await
+}
+
+/// Opens Epic's own login page in a separate window. The result arrives on
+/// the `auth:changed` event, because the user may take a while.
+///
+/// Async on purpose: building a window from a synchronous command runs on
+/// the main thread, which is the thread that has to process the window
+/// creation, and the webview never finishes initialising.
+#[tauri::command]
+pub async fn auth_login(app: AppHandle) -> Result<()> {
+    auth::open_login_window(&app)
+}
+
+/// The URL to open in a normal browser when the embedded window will not do.
+#[tauri::command]
+pub fn auth_login_url() -> String {
+    auth::login_url()
+}
+
+/// Completes a login from a code the user pasted in.
+#[tauri::command]
+pub async fn auth_submit_code(state: State<'_, AppState>, code: String) -> Result<AuthState> {
+    auth::submit_code(&state.runtime.legendary(), &code).await
+}
+
+/// Signs out and forgets the cached library, so the next account does not
+/// see the previous one's games.
+#[tauri::command]
+pub async fn auth_logout(state: State<'_, AppState>) -> Result<AuthState> {
+    let result = auth::logout(&state.runtime.legendary()).await;
+    state.library.clear().await?;
+    result
+}
+
+/// The library as last cached. Cheap, and what the grid renders on start.
+#[tauri::command]
+pub async fn library_snapshot(state: State<'_, AppState>) -> Result<LibrarySnapshot> {
+    Ok(state.library.snapshot().await)
+}
+
+/// Re-reads the library from Legendary. `force` also makes Legendary
+/// re-download the metadata it has cached itself.
+#[tauri::command]
+pub async fn library_refresh(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    force: bool,
+) -> Result<LibrarySnapshot> {
+    state
+        .library
+        .refresh(&app, &state.runtime.legendary(), force)
+        .await
+}
+
+#[tauri::command]
+pub async fn game_details(
+    state: State<'_, AppState>,
+    app_name: String,
+) -> Result<Option<GameDetails>> {
+    Ok(state.library.details(&app_name).await)
 }
 
 /// Opens one of Wisp's own folders in the system file manager.

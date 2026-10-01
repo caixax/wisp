@@ -1,0 +1,109 @@
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--space) * 1.5);
+  margin-bottom: calc(var(--space) * 3);
+}
+
+.search {
+  flex: 1 1 220px;
+  min-width: 180px;
+  max-width: 340px;
+  padding: calc(var(--space) * 1) calc(var(--space) * 1.5);
+  font: inherit;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.search::placeholder {
+  color: var(--text-faint);
+}
+
+.filters {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}
+
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--space) * 0.75);
+  padding: calc(var(--space) * 0.75) calc(var(--space) * 1.5);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-muted);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.filter:hover {
+  color: var(--text);
+}
+
+.filter[data-active='true'] {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.count {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+.sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space);
+  margin-left: auto;
+}
+
+.sortLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.select {
+  padding: calc(var(--space) * 0.75) calc(var(--space) * 1.25);
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(164px, 1fr));
+  gap: calc(var(--space) * 2.5) calc(var(--space) * 2);
+}
+
+.notice,
+.footnote {
+  margin-bottom: calc(var(--space) * 2);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.footnote {
+  margin-top: calc(var(--space) * 3);
+  margin-bottom: 0;
+}
+
+.error {
+  margin-bottom: calc(var(--space) * 2);
+  font-size: 12px;
+  color: var(--danger);
+  overflow-wrap: anywhere;
+}

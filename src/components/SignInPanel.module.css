@@ -1,0 +1,81 @@
+.panel {
+  max-width: 560px;
+  padding: calc(var(--space) * 3);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.title {
+  margin-bottom: var(--space);
+  font-size: 16px;
+}
+
+.body {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.note {
+  margin-top: var(--space);
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space);
+  margin-top: calc(var(--space) * 2.5);
+}
+
+.manual {
+  margin-top: calc(var(--space) * 2.5);
+  padding-top: calc(var(--space) * 2);
+  border-top: 1px solid var(--border);
+}
+
+.steps {
+  margin: 0 0 calc(var(--space) * 2);
+  padding-left: calc(var(--space) * 2.5);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.steps li + li {
+  margin-top: calc(var(--space) * 0.5);
+}
+
+.link {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--accent);
+  text-decoration: underline;
+  font: inherit;
+}
+
+.codeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space);
+}
+
+.code {
+  flex: 1 1 260px;
+  padding: calc(var(--space) * 1) calc(var(--space) * 1.25);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.error {
+  margin-top: calc(var(--space) * 2);
+  font-size: 12px;
+  color: var(--danger);
+  overflow-wrap: anywhere;
+}

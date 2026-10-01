@@ -6,9 +6,10 @@ The official launcher is heavy (around 2 GB of RAM), slow to start, and full of
 things most people never asked for. Wisp does a small set of things and tries to
 do them well.
 
-> **Status: in development.** Sprints 0 and 1 are done: the app builds, runs,
-> and sets up its own Legendary installation on first launch. Signing in to
-> Epic and listing your games starts in sprint 2.
+> **Status: in development.** Sprints 0 to 2 are done: Wisp sets up its own
+> Legendary installation, signs in to Epic, and shows the games you own with
+> their cover art and DLC. Installing and launching them arrive in sprints 3
+> and 4.
 
 ## What Wisp does
 
@@ -87,6 +88,7 @@ src-tauri/src/          Rust backend
   platform/             Per-OS paths and behaviour (windows.rs, linux.rs)
   runtime/              The private Legendary installation Wisp downloads
   legendary/            The only module that talks to the Legendary CLI
+  auth/                 Signing in to Epic
   library/              Owned games, DLC, metadata, cover art
   downloads/            Download queue and install jobs
   settings/             settings.json

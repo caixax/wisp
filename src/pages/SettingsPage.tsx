@@ -1,7 +1,9 @@
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/Button';
 import { Page } from '@/components/Page';
 import { RuntimeSection } from '@/components/RuntimeSection';
+import type { useAuth } from '@/hooks/useAuth';
 import type { useRuntime } from '@/hooks/useRuntime';
 import { languageLabel, resolveLanguage, SUPPORTED_LANGUAGES } from '@/i18n';
 import type { AppInfo, Settings, Theme } from '@/lib/types';
@@ -14,6 +16,7 @@ interface SettingsPageProps {
   info: AppInfo;
   settings: Settings;
   runtime: ReturnType<typeof useRuntime>;
+  auth: ReturnType<typeof useAuth>;
   onLanguageChange: (language: string | null) => void;
   onThemeChange: (theme: Theme) => void;
 }
@@ -22,6 +25,7 @@ export function SettingsPage({
   info,
   settings,
   runtime,
+  auth,
   onLanguageChange,
   onThemeChange,
 }: SettingsPageProps) {
@@ -72,6 +76,33 @@ export function SettingsPage({
             ))}
           </div>
         </fieldset>
+      </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>{t('auth.account')}</h2>
+        <dl className={styles.facts}>
+          <Fact label={t('auth.signedInAs')} value={auth.state?.account ?? t('auth.notSignedIn')} />
+          {auth.state?.loggedIn ? (
+            <Fact label={t('auth.gamesOwned')} value={String(auth.state.gamesAvailable)} />
+          ) : null}
+        </dl>
+        <div className={styles.actions}>
+          {auth.state?.loggedIn ? (
+            <Button onClick={() => void auth.logout()} disabled={auth.busy}>
+              {t('auth.signOut')}
+            </Button>
+          ) : (
+            <Button variant="primary" onClick={() => void auth.login()} disabled={auth.busy}>
+              {auth.busy ? t('auth.waiting') : t('auth.signIn')}
+            </Button>
+          )}
+        </div>
+        <p className={styles.hint}>{t('auth.signOutHint')}</p>
+        {auth.error ? (
+          <p className={styles.error} role="alert">
+            {auth.error}
+          </p>
+        ) : null}
       </section>
 
       <RuntimeSection

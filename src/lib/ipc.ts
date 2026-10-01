@@ -11,6 +11,11 @@ import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 
 import type {
   AppInfo,
+  AuthEvent,
+  AuthState,
+  CoverProgress,
+  GameDetails,
+  LibrarySnapshot,
   RuntimeProbe,
   RuntimeProgress,
   RuntimeStatus,
@@ -66,6 +71,53 @@ export function onRuntimeProgress(
   handler: (progress: RuntimeProgress) => void,
 ): Promise<UnlistenFn> {
   return listen<RuntimeProgress>('runtime:progress', (event) => handler(event.payload));
+}
+
+export function authStatus(): Promise<AuthState> {
+  return invoke<AuthState>('auth_status');
+}
+
+/**
+ * Opens Epic's login page in its own window. Resolves as soon as the window
+ * is up; the outcome arrives on {@link onAuthChanged}.
+ */
+export function authLogin(): Promise<void> {
+  return invoke<void>('auth_login');
+}
+
+/** The URL to open in a normal browser for the manual flow. */
+export function authLoginUrl(): Promise<string> {
+  return invoke<string>('auth_login_url');
+}
+
+export function authSubmitCode(code: string): Promise<AuthState> {
+  return invoke<AuthState>('auth_submit_code', { code });
+}
+
+export function authLogout(): Promise<AuthState> {
+  return invoke<AuthState>('auth_logout');
+}
+
+export function onAuthChanged(handler: (event: AuthEvent) => void): Promise<UnlistenFn> {
+  return listen<AuthEvent>('auth:changed', (event) => handler(event.payload));
+}
+
+/** The cached library. Cheap; this is what the grid renders on start. */
+export function librarySnapshot(): Promise<LibrarySnapshot> {
+  return invoke<LibrarySnapshot>('library_snapshot');
+}
+
+/** Re-reads the library from Legendary. `force` also refreshes its metadata. */
+export function libraryRefresh(force = false): Promise<LibrarySnapshot> {
+  return invoke<LibrarySnapshot>('library_refresh', { force });
+}
+
+export function gameDetails(appName: string): Promise<GameDetails | null> {
+  return invoke<GameDetails | null>('game_details', { appName });
+}
+
+export function onCoverProgress(handler: (progress: CoverProgress) => void): Promise<UnlistenFn> {
+  return listen<CoverProgress>('library:covers', (event) => handler(event.payload));
 }
 
 /** Opens one of Wisp's own folders in the system file manager. */

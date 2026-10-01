@@ -60,6 +60,75 @@ export type RuntimeProgress =
   | { phase: 'done'; version: string }
   | { phase: 'failed'; message: string };
 
+export interface AuthState {
+  loggedIn: boolean;
+  account: string | null;
+  gamesAvailable: number;
+}
+
+/** Payload of the `auth:changed` event: a new state, or a failure. */
+export type AuthEvent = AuthState | { error: string };
+
+export function isAuthFailure(event: AuthEvent): event is { error: string } {
+  return 'error' in event;
+}
+
+export interface InstalledInfo {
+  version: string;
+  installPath: string;
+  installSize: number;
+  canRunOffline: boolean;
+  needsVerification: boolean;
+  platform: string;
+  executable: string | null;
+  savePath: string | null;
+}
+
+export interface GameSummary {
+  appName: string;
+  title: string;
+  developer: string | null;
+  availableVersion: string | null;
+  installed: InstalledInfo | null;
+  updateAvailable: boolean;
+  hasCover: boolean;
+  cloudSaves: boolean;
+  /** Set for titles really managed by Origin, Ubisoft Connect and such. */
+  thirdPartyStore: string | null;
+  installable: boolean;
+  dlcCount: number;
+  installedDlcCount: number;
+}
+
+export interface DlcSummary {
+  appName: string;
+  title: string;
+  availableVersion: string | null;
+  installed: InstalledInfo | null;
+  updateAvailable: boolean;
+}
+
+export interface GameDetails extends GameSummary {
+  description: string | null;
+  dlcs: DlcSummary[];
+}
+
+export interface LibrarySnapshot {
+  games: GameSummary[];
+  installedCount: number;
+  updateCount: number;
+  /** Unix seconds of the last successful refresh. */
+  updatedAt: number | null;
+  /** False before the first refresh ever ran. */
+  fetched: boolean;
+}
+
+/** Payload of the `library:covers` event. */
+export interface CoverProgress {
+  done: number;
+  total: number;
+}
+
 export interface AppInfo {
   version: string;
   platform: string;
