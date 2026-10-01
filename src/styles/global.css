@@ -1,0 +1,125 @@
+/*
+ * Wisp design tokens and base styles.
+ *
+ * Dark is the default theme; `[data-theme='light']` overrides the palette.
+ * The theme attribute is written by `useTheme`, and `index.html` ships with
+ * `data-theme="dark"` so there is no flash before React mounts.
+ */
+
+:root {
+  --bg: #0b0d12;
+  --bg-elevated: #11141b;
+  --bg-sunken: #080a0e;
+  --bg-hover: #1a1f29;
+  --border: #232936;
+  --border-strong: #323a4b;
+  --text: #e6e9ef;
+  --text-muted: #98a1b3;
+  --text-faint: #6b7384;
+  --accent: #56d8ff;
+  --accent-contrast: #04222e;
+  --accent-soft: rgb(86 216 255 / 12%);
+  --danger: #ff6b6b;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --space: 8px;
+  --sidebar-width: 216px;
+
+  --font-sans:
+    'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, 'Noto Sans', sans-serif;
+  --font-mono: 'Cascadia Mono', 'Consolas', ui-monospace, monospace;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 30%);
+
+  color-scheme: dark;
+}
+
+[data-theme='light'] {
+  --bg: #f5f6f9;
+  --bg-elevated: #ffffff;
+  --bg-sunken: #ebedf2;
+  --bg-hover: #e8ebf1;
+  --border: #dce0e8;
+  --border-strong: #c3c9d6;
+  --text: #171a21;
+  --text-muted: #59616f;
+  --text-faint: #858d9c;
+  --accent: #0b7fb0;
+  --accent-contrast: #ffffff;
+  --accent-soft: rgb(11 127 176 / 10%);
+  --danger: #c2383b;
+
+  --shadow-sm: 0 1px 2px rgb(16 24 40 / 8%);
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* Accessibility: a clearly visible focus ring on every interactive element. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+/* Scrollbars that do not fight the dark theme. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

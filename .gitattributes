@@ -1,0 +1,14 @@
+# Normalise everything to LF in the repository and in working copies, so
+# Prettier (endOfLine: lf) and rustfmt agree across Windows and Linux.
+* text=auto eol=lf
+
+# Windows scripts must keep CRLF to run reliably from cmd.exe.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary assets
+*.png binary
+*.ico binary
+*.icns binary
+*.zip binary

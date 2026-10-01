@@ -1,0 +1,64 @@
+{
+  "app": {
+    "name": "Wisp",
+    "tagline": "Un launcher ligero para tu biblioteca de Epic"
+  },
+  "common": {
+    "loading": "Cargando…",
+    "retry": "Reintentar",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "save": "Guardar",
+    "comingSoon": "Próximamente",
+    "copy": "Copiar",
+    "copied": "Copiado"
+  },
+  "nav": {
+    "library": "Biblioteca",
+    "downloads": "Descargas",
+    "settings": "Ajustes",
+    "sectionsLabel": "Secciones principales"
+  },
+  "boot": {
+    "starting": "Iniciando Wisp…",
+    "failedTitle": "Wisp no ha podido arrancar",
+    "failedHint": "Comprueba que tus carpetas de usuario son accesibles e inténtalo de nuevo."
+  },
+  "library": {
+    "title": "Biblioteca",
+    "subtitle": "Los juegos que tienes en Epic, en un solo sitio.",
+    "emptyTitle": "Todavía no hay juegos",
+    "emptyBody": "El inicio de sesión en Epic y el listado de la biblioteca llegan en el sprint 2."
+  },
+  "downloads": {
+    "title": "Descargas",
+    "subtitle": "Una descarga a la vez, el resto en cola.",
+    "emptyTitle": "No hay nada en la cola",
+    "emptyBody": "La instalación y actualización de juegos llega en el sprint 3."
+  },
+  "settings": {
+    "title": "Ajustes",
+    "subtitle": "Wisp lo guarda todo en local. No se envía nada a ningún sitio.",
+    "appearance": "Apariencia",
+    "language": "Idioma",
+    "languageHint": "Elige un idioma o sigue el de tu sistema.",
+    "languageSystem": "Idioma del sistema ({{language}})",
+    "theme": "Tema",
+    "themeDark": "Oscuro",
+    "themeLight": "Claro",
+    "themeSystem": "Sistema",
+    "about": "Sobre esta instalación",
+    "version": "Versión",
+    "platform": "Plataforma",
+    "mode": "Modo",
+    "modePortable": "Portable",
+    "modeInstalled": "Instalado",
+    "paths": "Carpetas",
+    "pathConfig": "Ajustes",
+    "pathRuntime": "Runtime",
+    "pathLegendary": "Datos de Legendary",
+    "pathCache": "Caché",
+    "pathLogs": "Registros",
+    "pathInstall": "Carpeta de instalación por defecto"
+  }
+}

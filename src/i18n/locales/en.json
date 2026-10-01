@@ -1,0 +1,64 @@
+{
+  "app": {
+    "name": "Wisp",
+    "tagline": "A light launcher for your Epic library"
+  },
+  "common": {
+    "loading": "Loading…",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save",
+    "comingSoon": "Coming soon",
+    "copy": "Copy",
+    "copied": "Copied"
+  },
+  "nav": {
+    "library": "Library",
+    "downloads": "Downloads",
+    "settings": "Settings",
+    "sectionsLabel": "Main sections"
+  },
+  "boot": {
+    "starting": "Starting Wisp…",
+    "failedTitle": "Wisp could not start",
+    "failedHint": "Check that your user folders are accessible and try again."
+  },
+  "library": {
+    "title": "Library",
+    "subtitle": "The games you own on Epic, in one place.",
+    "emptyTitle": "No games yet",
+    "emptyBody": "Signing in to Epic and listing your library arrives in sprint 2."
+  },
+  "downloads": {
+    "title": "Downloads",
+    "subtitle": "One download at a time, the rest queued.",
+    "emptyTitle": "Nothing in the queue",
+    "emptyBody": "Installing and updating games arrives in sprint 3."
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Wisp keeps everything local. Nothing is sent anywhere.",
+    "appearance": "Appearance",
+    "language": "Language",
+    "languageHint": "Choose a language or follow your system.",
+    "languageSystem": "System language ({{language}})",
+    "theme": "Theme",
+    "themeDark": "Dark",
+    "themeLight": "Light",
+    "themeSystem": "System",
+    "about": "About this installation",
+    "version": "Version",
+    "platform": "Platform",
+    "mode": "Mode",
+    "modePortable": "Portable",
+    "modeInstalled": "Installed",
+    "paths": "Folders",
+    "pathConfig": "Settings",
+    "pathRuntime": "Runtime",
+    "pathLegendary": "Legendary data",
+    "pathCache": "Cache",
+    "pathLogs": "Logs",
+    "pathInstall": "Default install folder"
+  }
+}
