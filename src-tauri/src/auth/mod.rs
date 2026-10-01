@@ -15,12 +15,19 @@
 //! 3. Wisp reads that code out of the page and hands it to
 //!    `legendary auth --code`, which exchanges it for the tokens it stores.
 //!
+//! Signing in through Xbox, Google, Steam and the rest goes through a popup
+//! that Epic opens with `window.open`, so those are given real windows of
+//! their own and watched the same way.
+//!
 //! If anything in that chain breaks, the same page can be opened in the
 //! system browser and the code pasted into Wisp by hand, which is exactly
 //! what `legendary auth --disable-webview` asks for.
 
+use std::sync::atomic::{AtomicUsize, Ordering};
+
 use serde::Serialize;
-use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::webview::NewWindowResponse;
+use tauri::{AppHandle, Emitter, Manager, Url, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 
 use crate::error::{Error, Result};
 use crate::legendary::Legendary;
@@ -40,6 +47,9 @@ const REDIRECT_PATH: &str = "/id/api/redirect";
 
 /// Reads the signed-in state out of the page Epic redirects to.
 const READ_CODE_JS: &str = "document.body ? document.body.innerText : ''";
+
+/// Gives every provider popup a label of its own.
+static POPUP_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -90,40 +100,110 @@ pub fn open_login_window(app: &AppHandle) -> Result<()> {
 
     tracing::info!("opening the Epic login window");
     let handle = app.clone();
+    let popup_handle = app.clone();
+
     WebviewWindowBuilder::new(app, LOGIN_WINDOW, WebviewUrl::External(url))
         .title("Epic Games")
         // Epic's login form is built for a narrow, tall viewport.
         .inner_size(520.0, 780.0)
         .min_inner_size(420.0, 560.0)
         .center()
-        // Signing out walks through several Epic domains before the login
-        // form appears, so the trail is logged to make support easier.
-        .on_page_load(move |webview, payload| {
-            tracing::debug!(
-                url = %payload.url().as_str().split('?').next().unwrap_or_default(),
-                event = ?payload.event(),
-                "login page load"
-            );
-            if payload.url().path() != REDIRECT_PATH {
-                return;
-            }
-            let handle = handle.clone();
-            // The code lives in the page body, so it has to be read out of
-            // the webview rather than parsed from the URL.
-            let _ = webview.eval_with_callback(READ_CODE_JS, move |result| {
-                let Some(code) = authorization_code(&result) else {
-                    return;
-                };
-                let handle = handle.clone();
-                tauri::async_runtime::spawn(async move {
-                    finish_login(handle, code).await;
-                });
-            });
-        })
+        .on_page_load(move |window, payload| watch_for_code(&handle, &window, &payload))
+        // "Sign in with Xbox", Google, Steam and the rest hand off to the
+        // provider in a popup. Without a handler for `window.open` those
+        // buttons silently do nothing, so each one gets a real window.
+        .on_new_window(move |url, features| open_provider_popup(&popup_handle, &url, features))
         .build()
         .map_err(|e| Error::Config(format!("could not open the login window: {e}")))?;
 
     Ok(())
+}
+
+/// Opens one of the sign-in providers Epic delegates to.
+///
+/// The popup keeps its link to the page that opened it, which the provider
+/// flows rely on to report back, and it inherits the same page watcher so a
+/// flow that finishes inside the popup is still picked up.
+fn open_provider_popup(
+    app: &AppHandle,
+    url: &Url,
+    features: tauri::webview::NewWindowFeatures,
+) -> NewWindowResponse<tauri::Wry> {
+    let label = format!(
+        "{LOGIN_WINDOW}-popup-{}",
+        POPUP_COUNTER.fetch_add(1, Ordering::Relaxed)
+    );
+    tracing::info!(provider = %url.host_str().unwrap_or("unknown"), "opening a sign-in popup");
+
+    let watcher = app.clone();
+    let builder = WebviewWindowBuilder::new(
+        app,
+        label,
+        // The popup starts blank and the webview then navigates it to the
+        // URL the page asked for, which is what keeps the two linked.
+        WebviewUrl::External("about:blank".parse().expect("about:blank is a valid URL")),
+    )
+    .title(url.host_str().unwrap_or("Sign in"))
+    .window_features(features)
+    .on_document_title_changed(|window, title| {
+        let _ = window.set_title(&title);
+    })
+    .on_page_load(move |window, payload| watch_for_code(&watcher, &window, &payload));
+
+    match builder.build() {
+        Ok(window) => NewWindowResponse::Create { window },
+        Err(e) => {
+            tracing::error!("could not open the sign-in popup: {e}");
+            NewWindowResponse::Deny
+        }
+    }
+}
+
+/// Picks the authorization code out of Epic's redirect page.
+///
+/// Attached to every window in the login flow, because a provider popup can
+/// be the one that ends up on the redirect.
+fn watch_for_code(
+    app: &AppHandle,
+    window: &WebviewWindow,
+    payload: &tauri::webview::PageLoadPayload<'_>,
+) {
+    tracing::debug!(
+        url = %payload.url().as_str().split('?').next().unwrap_or_default(),
+        event = ?payload.event(),
+        "login page load"
+    );
+
+    if payload.url().path() != REDIRECT_PATH {
+        return;
+    }
+
+    let app = app.clone();
+    // The code lives in the page body, so it has to be read out of the
+    // webview rather than parsed from the URL.
+    let _ = window.eval_with_callback(READ_CODE_JS, move |result| {
+        let Some(code) = authorization_code(&result) else {
+            return;
+        };
+        let app = app.clone();
+        tauri::async_runtime::spawn(async move {
+            finish_login(app, code).await;
+        });
+    });
+}
+
+/// Closes the login window and any provider popup left open with it.
+fn close_login_windows(app: &AppHandle) {
+    let open: Vec<_> = app
+        .webview_windows()
+        .into_iter()
+        .filter(|(label, _)| label.starts_with(LOGIN_WINDOW))
+        .map(|(_, window)| window)
+        .collect();
+
+    for window in open {
+        let _ = window.close();
+    }
 }
 
 /// Hands a code to Legendary and tells the app how it went.
@@ -136,9 +216,7 @@ async fn finish_login(app: AppHandle, code: String) {
         Err(e) => Err(e),
     };
 
-    if let Some(window) = app.get_webview_window(LOGIN_WINDOW) {
-        let _ = window.close();
-    }
+    close_login_windows(&app);
 
     match result {
         Ok(state) => {
